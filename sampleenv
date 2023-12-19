@@ -1,0 +1,5 @@
+HOST="localhost"
+DATABASE_NAME="abc"
+PORT="8000"
+DATABASE_KEY="abc"
+PRIVATE_KEY="abc";
