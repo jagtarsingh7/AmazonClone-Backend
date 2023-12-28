@@ -3,7 +3,7 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const axios = require("axios")
 const jwkToPem = require('jwk-to-pem');
-const { body, check, validationResult } = require("express-validator");
+const { check, validationResult } = require("express-validator");
 const { CognitoUserPool, CognitoUserAttribute, CognitoUser, AuthenticationDetails } = require("amazon-cognito-identity-js")
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require("../models/user");
@@ -15,6 +15,10 @@ const poolData = {
 };
 
 const userPool = new CognitoUserPool(poolData);
+
+router.get("/",(req,res)=>{
+    res.status(200).send("Welcome to the backend")
+})
 
 router.route("/signup")
     .post((req, res, next) => {
@@ -91,7 +95,6 @@ router.route("/signin").get(authenticateToken, (req, res) => { res.send("hello")
     })
 
 router.post('/create-payment-intent', authenticateToken, async (req, res) => {
-    // Create a PaymentIntent with the amount, currency, and a payment method type.
     try {
         const customer = await stripe.customers.create({
             name: req.body.name,
@@ -111,7 +114,6 @@ router.post('/create-payment-intent', authenticateToken, async (req, res) => {
             description: "Test purpose",
             automatic_payment_methods: { enabled: true }
         });
-
         PurchasedItems.create({
             name: req.body.name,
             email: req.body.email,
@@ -128,21 +130,14 @@ router.post('/create-payment-intent', authenticateToken, async (req, res) => {
         }).catch((e) => {
             console.log(e);
         })
-        // Send publishable key and PaymentIntent details to client
         res.send({ client_secret: paymentIntent.client_secret, });
-
-    } catch (e) {
-        console.log("error:" + e)
-        return res.status(400).send(e);
-    }
+    } catch (e) {return res.status(400).send(e);}
 });
 
 router.post('/purchased', authenticateToken, async (req, res) => {
     PurchasedItems.find({ email: req.body.email }).then(data => {
-        // Handle retrieved data
         res.status(200).json(data)
     }).catch(err => {
-        // Handle error
         res.status(500).send(err)
     });
 });
@@ -155,11 +150,9 @@ async function authenticateToken(req, res, next) {
         return res.status(401).send("Please provide a valid token");
     }
     const decodedToken = jwt.decode(token, { complete: true });
-    // Find the key with a matching 'kid' in JWKs
     const selectedKey = jwks.keys.find(key => key.kid === decodedToken.header.kid);
     const pem = jwkToPem(selectedKey);
-    jwt.verify(token, pem, { algorithms: ['RS256'] }, (err, decodedToken) => {
-        // handle the decoded token
+    jwt.verify(token, pem, { algorithms: ['RS256'] }, (err) => {
         if (err) {
             return res.status(401).send(err);
         }
@@ -173,7 +166,6 @@ router.post('/authverify', authenticateToken, async (req, res) => {
     const selectedKey = jwks.keys.find(key => key.kid === decodedToken.header.kid);
     const pem = jwkToPem(selectedKey);
     jwt.verify(req.body.Idtoken, pem, { algorithms: ['RS256'] }, (err, decodedToken) => {
-        // handle the decoded token
         if (err) {
             return res.status(401).send(err);
         }
