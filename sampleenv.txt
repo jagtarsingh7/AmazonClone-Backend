@@ -1,0 +1,9 @@
+HOST="localhost"
+DATABASE_NAME="abc"
+PORT="8000"
+DATABASE_KEY="abc"
+PRIVATE_KEY="abc";
+STRIPE_SECRET_KEY="sxsxssxsxs"
+USER_POOL_ID="xsxsxsx-xsxsxsx-xsxs"
+CLIENT_ID="sxsxsxsxsxsxsxs"
+COGNITO_REGION="ap-sxsxsx-1"
